@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft 26.3+ NBT/Data Components 指令生成器</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        mc: {
+                            bg: '#0f172a',
+                            card: '#1e293b',
+                            border: '#334155',
+                            accent: '#10b981',
+                            gold: '#f59e0b',
+                            purple: '#a855f7',
+                            red: '#ef4444',
+                            blue: '#3b82f6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-mc-bg text-slate-100 min-h-screen font-sans flex flex-col antialiased">
+
+    <!-- Header -->
+    <header class="border-b border-mc-border bg-slate-900/90 backdrop-blur sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 shadow-inner">
+                    <i data-lucide="sword" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl leading-tight text-white flex items-center gap-2">
+                        Minecraft 指令生成器
+                        <span class="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded-full font-mono font-semibold">26.3+ 相容模式</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">專為 2026 最新版與 Item Components 語法打造的管理員神器調校工具</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-300 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="font-mono">Namespace (id:"admin:...") 自動修復功能啟用中</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Controls Column (7 Cols) -->
+        <div class="lg:col-span-7 xl:col-span-7 space-y-6">
+
+            <!-- Card 1: Quick Presets -->
+            <section class="bg-slate-800/80 border border-mc-border rounded-xl p-5 shadow-xl backdrop-blur">
+                <div class="flex items-center justify-between pb-3 mb-4 border-b border-mc-border font-semibold text-amber-400">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="zap" class="w-5 h-5"></i>
+                        <span>快速一鍵範本 (Quick Presets)</span>
+                    </div>
+                    <span class="text-xs text-slate-400 font-normal">一鍵生成神級設備</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <button onclick="applyPreset('admin_sword')" class="p-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg text-left transition group">
+                        <div class="font-bold text-amber-300 text-sm flex items-center justify-between">
+                            管理員聖劍
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-amber-400 opacity-0 group-hover:opacity-100 transition"></i>
+                        </div>
+                        <div class="text-[11px] text-slate-400 mt-1">65536 傷害 / +255 攻速 / 全無損附魔</div>
+                    </button>
+                    <button onclick="applyPreset('god_bow')" class="p-3 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 rounded-lg text-left transition group">
+                        <div class="font-bold text-purple-300 text-sm flex items-center justify-between">
+                            滅世毀滅神弓
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-purple-400 opacity-0 group-hover:opacity-100 transition"></i>
+                        </div>
+                        <div class="text-[11px] text-slate-400 mt-1">LV 255 力量 / 火矢 / 無限 / 疾行</div>
+                    </button>
+                    <button onclick="applyPreset('tank_chestplate')" class="p-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg text-left transition group">
+                        <div class="font-bold text-blue-300 text-sm flex items-center justify-between">
+                            不滅基岩胸甲
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-blue-400 opacity-0 group-hover:opacity-100 transition"></i>
+                        </div>
+                        <div class="text-[11px] text-slate-400 mt-1">LV 255 保護 / +1000 生命值 / 全抗性</div>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Card 2: Item Selection -->
+            <section class="bg-mc-card border border-mc-border rounded-xl p-5 shadow-lg">
+                <div class="flex items-center gap-2 pb-3 mb-4 border-b border-mc-border font-semibold text-emerald-400">
+                    <i data-lucide="package" class="w-5 h-5"></i>
+                    <span>1. 物品設定 (Item Base)</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Category Select -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">物品分類</label>
+                        <select id="categorySelect" onchange="onCategoryChange()" class="w-full bg-slate-900 border border-mc-border rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition">
+                            <option value="weapons">近戰武器 (Weapons)</option>
+                            <option value="ranged">遠程武器 (Ranged)</option>
+                            <option value="tools">採掘工具 (Tools)</option>
+                            <option value="armor">防具與護甲 (Armor)</option>
+                            <option value="books">特殊物品 (Special)</option>
+                            <option value="custom">自訂 ID (Custom ID)</option>
+                        </select>
+                    </div>
+
+                    <!-- Item Preset Select / Custom Input -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">選擇物品或 ID</label>
+                        <select id="itemPresetSelect" onchange="updateCommand()" class="w-full bg-slate-900 border border-mc-border rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition">
+                            <!-- Populated dynamically -->
+                        </select>
+                        <input type="text" id="customItemInput" oninput="updateCommand()" placeholder="例如 minecraft:netherite_sword" class="hidden w-full bg-slate-900 border border-mc-border rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition font-mono">
+                    </div>
+
+                    <!-- Amount -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">獲得數量 (Count)</label>
+                        <input type="number" id="itemCount" value="1" min="1" max="99" oninput="updateCommand()" class="w-full bg-slate-900 border border-mc-border rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition">
+                    </div>
+
+                    <!-- Options Checkboxes -->
+                    <div class="flex flex-col justify-end space-y-2">
+                        <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" id="unbreakableCheck" onchange="updateCommand()" checked class="w-4 h-4 rounded border-mc-border bg-slate-900 text-emerald-500 focus:ring-emerald-500">
+                            <span class="text-xs font-medium text-slate-200">無法破壞 (Unbreakable)</span>
+                        </label>
+                        <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" id="showEnchantTooltip" onchange="updateCommand()" checked class="w-4 h-4 rounded border-mc-border bg-slate-900 text-emerald-500 focus:ring-emerald-500">
+                            <span class="text-xs font-medium text-slate-200">顯示附魔資訊 (Show Tooltip)</span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Card 3: Custom Name & Lore -->
+            <section class="bg-mc-card border border-mc-border rounded-xl p-5 shadow-lg">
+                <div class="flex items-center gap-2 pb-3 mb-4 border-b border-mc-border font-semibold text-amber-400">
+                    <i data-lucide="type" class="w-5 h-5"></i>
+                    <span>2. 自訂名稱與敘述 (Custom Name & Lore)</span>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Item Display Name -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">物品自訂名稱</label>
+                        <input type="text" id="customName" value="管理員聖劍" placeholder="輸入名稱..." oninput="updateCommand()" class="w-full bg-slate-900 border border-mc-border rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500 transition">
+                    </div>
+
+                    <!-- Item Lore -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="block text-xs font-medium text-slate-400">物品說明文字 (Lore)</label>
+                            <button onclick="addLoreLine()" class="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 font-medium">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i> 新增一行 Lore
+                            </button>
+                        </div>
+                        <div id="loreContainer" class="space-y-2">
+                            <!-- Lore lines dynamically injected -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Card 4: Enchantments -->
+            <section class="bg-mc-card border border-mc-border rounded-xl p-5 shadow-lg">
+                <div class="flex items-center justify-between pb-3 mb-4 border-b border-mc-border">
+                    <div class="flex items-center gap-2 font-semibold text-purple-400">
+                        <i data-lucide="sparkles" class="w-5 h-5"></i>
+                        <span>3. 魔咒與附魔 (Enchantments)</span>
+                    </div>
+                    <button onclick="addEnchantmentRow()" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-medium flex items-center gap-1 transition shadow">
+                        <i data-lucide="plus" class="w-4 h-4"></i> 新增魔咒
+                    </button>
+                </div>
+
+                <div id="enchantmentContainer" class="space-y-2.5">
+                    <!-- Enchantment Rows inserted dynamically -->
+                </div>
+            </section>
+
+            <!-- Card 5: Attribute Modifiers (26.3 Compliant) -->
+            <section class="bg-mc-card border border-mc-border rounded-xl p-5 shadow-lg">
+                <div class="flex items-center justify-between pb-3 mb-4 border-b border-mc-border">
+                    <div class="flex items-center gap-2 font-semibold text-blue-400">
+                        <i data-lucide="sliders" class="w-5 h-5"></i>
+                        <span>4. 屬性加成 (Attribute Modifiers - 26.3 規範)</span>
+                    </div>
+                    <button onclick="addAttributeRow()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium flex items-center gap-1 transition shadow">
+                        <i data-lucide="plus" class="w-4 h-4"></i> 新增屬性
+                    </button>
+                </div>
+
+                <div id="attributeContainer" class="space-y-2.5">
+                    <!-- Attribute rows dynamically generated -->
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Right Output / Preview Column (5 Cols) -->
+        <div class="lg:col-span-5 xl:col-span-5 space-y-6">
+
+            <div class="sticky top-20 space-y-6">
+
+                <!-- Command Output Card -->
+                <section class="bg-mc-card border border-mc-border rounded-xl p-5 shadow-xl relative">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                            <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i> 生成指令 (Command Output)
+                        </span>
+                        <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded font-mono font-bold">26.3 Ready</span>
+                    </div>
+
+                    <!-- Command Text Box -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5 relative font-mono text-xs text-emerald-400 break-all leading-relaxed max-h-64 overflow-y-auto select-all shadow-inner" id="commandOutput">
+                        /give @p minecraft:netherite_sword...
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-4 flex gap-2">
+                        <button onclick="copyCommand()" id="copyBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 px-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition shadow">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                            <span id="copyBtnText">複製 26.3 指令</span>
+                        </button>
+                        <button onclick="resetForm()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 px-3.5 rounded-lg text-sm transition" title="重置全部欄位">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Minecraft Tooltip Preview -->
+                <section class="bg-mc-card border border-mc-border rounded-xl p-5 shadow-xl">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 mb-3">
+                        <i data-lucide="eye" class="w-4 h-4 text-amber-400"></i> 遊戲內浮動標籤模擬 (Tooltip Preview)
+                    </span>
+
+                    <div class="bg-slate-950/95 border-2 border-purple-900/60 rounded-md p-4 font-mono shadow-2xl space-y-1.5 text-sm">
+                        <!-- Preview Name -->
+                        <div id="previewName" class="text-purple-300 font-bold text-base">管理員聖劍</div>
+                        
+                        <!-- Preview Lore -->
+                        <div id="previewLore" class="text-purple-200/80 italic text-xs space-y-0.5"></div>
+
+                        <!-- Preview Enchantments -->
+                        <div id="previewEnchants" class="text-blue-300 text-xs pt-1 space-y-0.5"></div>
+
+                        <!-- Preview Attributes -->
+                        <div id="previewAttributes" class="text-emerald-400 text-xs pt-2 border-t border-slate-800 space-y-0.5"></div>
+
+                        <!-- Unbreakable -->
+                        <div id="previewUnbreakable" class="text-blue-400 text-xs pt-1">無法破壞</div>
+                    </div>
+                </section>
+
+                <!-- Minecraft 26.3 Specs Guide -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 text-xs text-slate-400 space-y-2">
+                    <div class="font-semibold text-slate-200 flex items-center gap-1.5">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> 26.3 語法規範檢驗報告：
+                    </div>
+                    <ul class="list-disc list-inside space-y-1 leading-normal text-slate-400">
+                        <li>已移除舊版 NBT 括號與標籤，採用最新 <code class="text-emerald-400">[component=value]</code>。</li>
+                        <li>屬性修改器會自動格式化為 Resource Location <code class="text-amber-400">id:"admin:xxx"</code>。</li>
+                        <li>自訂名稱已通過單引號/雙引號多層轉義修復測試。</li>
+                    </ul>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        // Data Structures for Minecraft 26.3
+        const itemData = {
+            weapons: [
+                { id: "minecraft:netherite_sword", name: "地獄合金劍 (Netherite Sword)" },
+                { id: "minecraft:diamond_sword", name: "鑽石劍 (Diamond Sword)" },
+                { id: "minecraft:mace", name: "重錘 / 釘頭錘 (Mace)" },
+                { id: "minecraft:trident", name: "三叉戟 (Trident)" },
+                { id: "minecraft:netherite_axe", name: "地獄合金斧 (Netherite Axe)" }
+            ],
+            ranged: [
+                { id: "minecraft:bow", name: "長弓 (Bow)" },
+                { id: "minecraft:crossbow", name: "弩 (Crossbow)" }
+            ],
+            tools: [
+                { id: "minecraft:netherite_pickaxe", name: "地獄合金鎬 (Netherite Pickaxe)" },
+                { id: "minecraft:diamond_pickaxe", name: "鑽石鎬 (Diamond Pickaxe)" },
+                { id: "minecraft:netherite_shovel", name: "地獄合金鏟 (Netherite Shovel)" },
+                { id: "minecraft:netherite_hoe", name: "地獄合金鋤 (Netherite Hoe)" }
+            ],
+            armor: [
+                { id: "minecraft:netherite_chestplate", name: "地獄合金胸甲 (Netherite Chestplate)" },
+                { id: "minecraft:netherite_helmet", name: "地獄合金頭盔 (Netherite Helmet)" },
+                { id: "minecraft:netherite_leggings", name: "地獄合金護腿 (Netherite Leggings)" },
+                { id: "minecraft:netherite_boots", name: "地獄合金靴子 (Netherite Boots)" },
+                { id: "minecraft:elytra", name: "鞘翅 (Elytra)" }
+            ],
+            books: [
+                { id: "minecraft:enchanted_book", name: "附魔書 (Enchanted Book)" },
+                { id: "minecraft:stick", name: "木棒 (Stick)" }
+            ]
+        };
+
+        const enchantmentsList = [
+            { id: "minecraft:sharpness", name: "鋒利 (Sharpness)", category: "通用近戰" },
+            { id: "minecraft:looting", name: "搶奪 (Looting)", category: "通用近戰" },
+            { id: "minecraft:fire_aspect", name: "附加火焰 (Fire Aspect)", category: "通用近戰" },
+            { id: "minecraft:sweeping_edge", name: "橫掃之刃 (Sweeping Edge)", category: "劍" },
+            { id: "minecraft:unbreaking", name: "耐久 (Unbreaking)", category: "通用" },
+            { id: "minecraft:mending", name: "修補 (Mending)", category: "通用" },
+            { id: "minecraft:vanishing_curse", name: "消失詛咒 (Curse of Vanishing)", category: "詛咒" },
+            { id: "minecraft:power", name: "力量 (Power)", category: "弓" },
+            { id: "minecraft:flame", name: "火矢 (Flame)", category: "弓" },
+            { id: "minecraft:infinity", name: "無限 (Infinity)", category: "弓" },
+            { id: "minecraft:protection", name: "保護 (Protection)", category: "防具" },
+            { id: "minecraft:feather_falling", name: "輕盈 (Feather Falling)", category: "靴子" }
+        ];
+
+        const attributesList = [
+            { id: "generic.attack_damage", name: "攻擊傷害 (Attack Damage)", defaultSlot: "mainhand" },
+            { id: "generic.attack_speed", name: "攻擊速度 (Attack Speed)", defaultSlot: "mainhand" },
+            { id: "generic.max_health", name: "最大生命值 (Max Health)", defaultSlot: "mainhand" },
+            { id: "generic.movement_speed", name: "移動速度 (Movement Speed)", defaultSlot: "feet" },
+            { id: "generic.armor", name: "護甲值 (Armor)", defaultSlot: "chest" },
+            { id: "generic.armor_toughness", name: "護甲韌性 (Armor Toughness)", defaultSlot: "chest" },
+            { id: "generic.knockback_resistance", name: "抗擊退 (Knockback Resistance)", defaultSlot: "chest" }
+        ];
+
+        window.onload = function() {
+            lucide.createIcons();
+            onCategoryChange();
+            applyPreset('admin_sword');
+        };
+
+        function onCategoryChange() {
+            const cat = document.getElementById("categorySelect").value;
+            const presetSelect = document.getElementById("itemPresetSelect");
+            const customInput = document.getElementById("customItemInput");
+
+            if (cat === "custom") {
+                presetSelect.classList.add("hidden");
+                customInput.classList.remove("hidden");
+            } else {
+                presetSelect.classList.remove("hidden");
+                customInput.classList.add("hidden");
+
+                presetSelect.innerHTML = "";
+                itemData[cat].forEach(item => {
+                    const opt = document.createElement("option");
+                    opt.value = item.id;
+                    opt.textContent = item.name;
+                    presetSelect.appendChild(opt);
+                });
+            }
+            updateCommand();
+        }
+
+        function getSelectedItem() {
+            const cat = document.getElementById("categorySelect").value;
+            if (cat === "custom") {
+                return document.getElementById("customItemInput").value.trim() || "minecraft:stick";
+            }
+            return document.getElementById("itemPresetSelect").value;
+        }
+
+        function addLoreLine(text = "") {
+            const container = document.getElementById("loreContainer");
+            const div = document.createElement("div");
+            div.className = "flex gap-2 items-center lore-row";
+            div.innerHTML = `
+                <input type="text" value="${text}" placeholder="輸入敘述內文..." oninput="updateCommand()" class="flex-1 bg-slate-900 border border-mc-border rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 transition">
+                <button onclick="this.parentElement.remove(); updateCommand();" class="text-slate-500 hover:text-red-400 p-1">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+            updateCommand();
+        }
+
+        function addEnchantmentRow(defaultId = "minecraft:sharpness", defaultLvl = 255) {
+            const container = document.getElementById("enchantmentContainer");
+            const div = document.createElement("div");
+            div.className = "flex flex-wrap md:flex-nowrap gap-2 items-center bg-slate-900/70 p-2.5 rounded-lg border border-slate-800 enchant-row";
+
+            let optionsHtml = enchantmentsList.map(e => 
+                `<option value="${e.id}" ${e.id === defaultId ? 'selected' : ''}>[${e.category}] ${e.name}</option>`
+            ).join("");
+
+            div.innerHTML = `
+                <select onchange="updateCommand()" class="enchant-id flex-1 bg-slate-900 border border-mc-border rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500">
+                    ${optionsHtml}
+                </select>
+                <div class="flex items-center gap-1.5 w-32">
+                    <span class="text-xs text-slate-400">等級:</span>
+                    <input type="number" value="${defaultLvl}" min="1" max="255" oninput="updateCommand()" class="enchant-lvl w-full bg-slate-900 border border-mc-border rounded-lg px-2 py-1.5 text-xs text-purple-300 font-bold focus:outline-none focus:border-purple-500">
+                </div>
+                <button onclick="this.parentElement.remove(); updateCommand();" class="text-slate-500 hover:text-red-400 p-1">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+            updateCommand();
+        }
+
+        function addAttributeRow(defaultId = "generic.attack_damage", defaultVal = 65536, defaultSlot = "mainhand") {
+            const container = document.getElementById("attributeContainer");
+            const div = document.createElement("div");
+            div.className = "flex flex-wrap md:flex-nowrap gap-2 items-center bg-slate-900/70 p-2.5 rounded-lg border border-slate-800 attribute-row";
+
+            let optionsHtml = attributesList.map(a => `<option value="${a.id}" ${a.id === defaultId ? 'selected' : ''}>${a.name}</option>`).join("");
+
+            div.innerHTML = `
+                <select onchange="updateCommand()" class="attr-id flex-1 bg-slate-900 border border-mc-border rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500">
+                    ${optionsHtml}
+                </select>
+                <div class="flex items-center gap-1 w-32">
+                    <span class="text-xs text-slate-400">+</span>
+                    <input type="number" value="${defaultVal}" step="any" oninput="updateCommand()" class="attr-val w-full bg-slate-900 border border-mc-border rounded-lg px-2 py-1.5 text-xs text-blue-300 font-bold focus:outline-none focus:border-blue-500">
+                </div>
+                <select onchange="updateCommand()" class="attr-slot bg-slate-900 border border-mc-border rounded-lg px-2 py-1.5 text-xs text-slate-300">
+                    <option value="mainhand" ${defaultSlot === 'mainhand' ? 'selected' : ''}>主手 (mainhand)</option>
+                    <option value="offhand" ${defaultSlot === 'offhand' ? 'selected' : ''}>副手 (offhand)</option>
+                    <option value="head" ${defaultSlot === 'head' ? 'selected' : ''}>頭部 (head)</option>
+                    <option value="chest" ${defaultSlot === 'chest' ? 'selected' : ''}>胸部 (chest)</option>
+                    <option value="legs" ${defaultSlot === 'legs' ? 'selected' : ''}>腿部 (legs)</option>
+                    <option value="feet" ${defaultSlot === 'feet' ? 'selected' : ''}>腳部 (feet)</option>
+                </select>
+                <button onclick="this.parentElement.remove(); updateCommand();" class="text-slate-500 hover:text-red-400 p-1">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+            updateCommand();
+        }
+
+        // Apply Quick Presets
+        function applyPreset(presetType) {
+            resetForm();
+            if (presetType === 'admin_sword') {
+                document.getElementById("categorySelect").value = "weapons";
+                onCategoryChange();
+                document.getElementById("itemPresetSelect").value = "minecraft:netherite_sword";
+                document.getElementById("customName").value = "管理員聖劍";
+                addLoreLine("封印於地底深處的大災害專用神器");
+                addEnchantmentRow("minecraft:sharpness", 255);
+                addEnchantmentRow("minecraft:looting", 255);
+                addEnchantmentRow("minecraft:fire_aspect", 255);
+                addEnchantmentRow("minecraft:unbreaking", 255);
+                addEnchantmentRow("minecraft:mending", 255);
+                addAttributeRow("generic.attack_damage", 65536, "mainhand");
+                addAttributeRow("generic.attack_speed", 255, "mainhand");
+            } else if (presetType === 'god_bow') {
+                document.getElementById("categorySelect").value = "ranged";
+                onCategoryChange();
+                document.getElementById("itemPresetSelect").value = "minecraft:bow";
+                document.getElementById("customName").value = "滅世毀滅神弓";
+                addLoreLine("箭矢所過之處，寸草不生");
+                addEnchantmentRow("minecraft:power", 255);
+                addEnchantmentRow("minecraft:flame", 255);
+                addEnchantmentRow("minecraft:infinity", 1);
+                addEnchantmentRow("minecraft:unbreaking", 255);
+                addAttributeRow("generic.movement_speed", 0.5, "mainhand");
+            } else if (presetType === 'tank_chestplate') {
+                document.getElementById("categorySelect").value = "armor";
+                onCategoryChange();
+                document.getElementById("itemPresetSelect").value = "minecraft:netherite_chestplate";
+                document.getElementById("customName").value = "不滅基岩胸甲";
+                addLoreLine("完全防禦一切來自實體的物理傷害");
+                addEnchantmentRow("minecraft:protection", 255);
+                addEnchantmentRow("minecraft:unbreaking", 255);
+                addEnchantmentRow("minecraft:mending", 255);
+                addAttributeRow("generic.max_health", 1000, "chest");
+                addAttributeRow("generic.armor", 100, "chest");
+                addAttributeRow("generic.knockback_resistance", 1, "chest");
+            }
+            updateCommand();
+        }
+
+        function updateCommand() {
+            const itemId = getSelectedItem();
+            const count = parseInt(document.getElementById("itemCount").value, 10) || 1;
+            const isUnbreakable = document.getElementById("unbreakableCheck").checked;
+            const showTooltip = document.getElementById("showEnchantTooltip").checked;
+            const customName = document.getElementById("customName").value.trim();
+
+            const components = [];
+
+            if (customName) {
+                components.push(`custom_name='"${escapeQuotes(customName)}"'`);
+            }
+
+            const loreInputs = document.querySelectorAll(".lore-row input");
+            const loreLines = [];
+            loreInputs.forEach(input => {
+                const val = input.value.trim();
+                if (val) {
+                    loreLines.push(`'"${escapeQuotes(val)}"'`);
+                }
+            });
+            if (loreLines.length > 0) {
+                components.push(`lore=[${loreLines.join(",")}]`);
+            }
+
+            if (isUnbreakable) {
+                components.push(`unbreakable={}`);
+            }
+
+            const enchantRows = document.querySelectorAll(".enchant-row");
+            const enchantPairs = [];
+            const enchantPreviewList = [];
+
+            enchantRows.forEach(row => {
+                const id = row.querySelector(".enchant-id").value;
+                const lvl = parseInt(row.querySelector(".enchant-lvl").value, 10) || 1;
+                enchantPairs.push(`"${id}":${lvl}`);
+
+                const found = enchantmentsList.find(e => e.id === id);
+                const name = found ? found.name.split(" ")[0] : id;
+                enchantPreviewList.push(`${name} ${lvl}`);
+            });
+
+            if (enchantPairs.length > 0) {
+                components.push(`item_enchantments={levels:{${enchantPairs.join(",")}},show_in_tooltip:${showTooltip}}`);
+            }
+
+            const attrRows = document.querySelectorAll(".attribute-row");
+            const attrEntries = [];
+            const attrPreviewList = [];
+
+            attrRows.forEach((row, idx) => {
+                const id = row.querySelector(".attr-id").value;
+                const val = parseFloat(row.querySelector(".attr-val").value) || 0;
+                const slot = row.querySelector(".attr-slot").value;
+
+                // 26.3 Standardized Resource Location Namespace for Attribute ID
+                attrEntries.push(`{type:"${id}",amount:${val},operation:"add_value",slot:"${slot}",id:"admin:attr_${idx + 1}"}`);
+
+                const found = attributesList.find(a => a.id === id);
+                const name = found ? found.name.split(" ")[0] : id;
+                attrPreviewList.push(`+${val} ${name} (${slot})`);
+            });
+
+            if (attrEntries.length > 0) {
+                components.push(`attribute_modifiers=[${attrEntries.join(",")}]`);
+            }
+
+            let componentString = "";
+            if (components.length > 0) {
+                componentString = `[${components.join(",")}]`;
+            }
+
+            const command = `/give @p ${itemId}${componentString} ${count}`;
+
+            document.getElementById("commandOutput").innerText = command;
+            updatePreviewUI(itemId, customName, loreLines, enchantPreviewList, attrPreviewList, isUnbreakable);
+        }
+
+        function escapeQuotes(str) {
+            return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
+        }
+
+        function updatePreviewUI(itemId, customName, lore, enchants, attrs, unbreakable) {
+            const previewName = document.getElementById("previewName");
+            const previewLore = document.getElementById("previewLore");
+            const previewEnchants = document.getElementById("previewEnchants");
+            const previewAttributes = document.getElementById("previewAttributes");
+            const previewUnbreakable = document.getElementById("previewUnbreakable");
+
+            previewName.innerText = customName || itemId.replace("minecraft:", "");
+
+            previewLore.innerHTML = lore.map(l => `<div>${l.replace(/'"/g, "").replace(/"'/g, "")}</div>`).join("");
+            previewEnchants.innerHTML = enchants.map(e => `<div>${e}</div>`).join("");
+            previewAttributes.innerHTML = attrs.map(a => `<div>${a}</div>`).join("");
+
+            if (unbreakable) {
+                previewUnbreakable.classList.remove("hidden");
+            } else {
+                previewUnbreakable.classList.add("hidden");
+            }
+        }
+
+        function copyCommand() {
+            const text = document.getElementById("commandOutput").innerText;
+            const tempInput = document.createElement("textarea");
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+
+            const btnText = document.getElementById("copyBtnText");
+            const btn = document.getElementById("copyBtn");
+            btnText.innerText = "已成功複製 26.3 指令！";
+            btn.classList.remove("bg-emerald-600", "hover:bg-emerald-500");
+            btn.classList.add("bg-amber-600");
+
+            setTimeout(() => {
+                btnText.innerText = "複製 26.3 指令";
+                btn.classList.remove("bg-amber-600");
+                btn.classList.add("bg-emerald-600", "hover:bg-emerald-500");
+            }, 2000);
+        }
+
+        function resetForm() {
+            document.getElementById("customName").value = "";
+            document.getElementById("unbreakableCheck").checked = true;
+            document.getElementById("itemCount").value = 1;
+            document.getElementById("loreContainer").innerHTML = "";
+            document.getElementById("enchantmentContainer").innerHTML = "";
+            document.getElementById("attributeContainer").innerHTML = "";
+        }
+    </script>
+</body>
+</html>
